@@ -163,6 +163,9 @@ useEffect(() => {
 
     setTop3(updatedTop);
   };
+  const changeUser = (userId: string) => {
+    setSelectedUser(String(userId));
+  };
 
   // DELETE hero
   const removeHero = async (id: number) => {
@@ -213,7 +216,7 @@ const value = useMemo(
     users,
     selectedUser,
     setSelectedUser,
-    changeUser,          // ✅ ADICIONAR
+    changeUser,          
     loadingUsers,
     loadingData,
     isOwner,
@@ -223,6 +226,7 @@ const value = useMemo(
   }),
   [heroes, favorites, top3, users, selectedUser, loadingUsers, loadingData, isOwner]
 );
+
 
 
   return <HeroesContext.Provider value={value}>{children}</HeroesContext.Provider>;
