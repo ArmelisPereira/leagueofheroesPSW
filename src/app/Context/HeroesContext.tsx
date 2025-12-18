@@ -186,18 +186,14 @@ useEffect(() => {
 
   // TOGGLE favorite
 const toggleFavorite = async (hero: Hero) => {
-  if (!isOwner) return;
+  if (!isOwner) return; // 🔒 BLOQUEIA
 
-  const exists = favorites.some((f) => f.id === hero.id);
-
-  const updatedFavs = exists
-    ? favorites.map((f) =>
-        f.id === hero.id ? { ...f, favorite: !f.favorite } : f
-      )
-    : [...favorites, { id: hero.id, favorite: true }];
+  const updatedFavs = favorites.map((f) =>
+    f.id === hero.id ? { ...f, favorite: !f.favorite } : f
+  );
 
   setFavorites(updatedFavs);
-  await saveFavorites(updatedFavs); // ✅ ENVIA PARA API /top
+  await saveFavorites(updatedFavs);
 
   const updatedTop = heroes
     .filter((h) => updatedFavs.some((f) => f.id === h.id && f.favorite))
@@ -208,23 +204,26 @@ const toggleFavorite = async (hero: Hero) => {
 
 
 
-  const value = useMemo(
-    () => ({
-      heroes,
-      favorites,
-      top3,
-      users,
-      selectedUser,
-      setSelectedUser,
-      loadingUsers,
-      loadingData,
-      isOwner,
-      saveHero,
-      removeHero,
-      toggleFavorite,
-    }),
-    [heroes, favorites, top3, users, selectedUser, loadingUsers, loadingData, isOwner]
-  );
+
+const value = useMemo(
+  () => ({
+    heroes,
+    favorites,
+    top3,
+    users,
+    selectedUser,
+    setSelectedUser,
+    changeUser,          // ✅ ADICIONAR
+    loadingUsers,
+    loadingData,
+    isOwner,
+    saveHero,
+    removeHero,
+    toggleFavorite,
+  }),
+  [heroes, favorites, top3, users, selectedUser, loadingUsers, loadingData, isOwner]
+);
+
 
   return <HeroesContext.Provider value={value}>{children}</HeroesContext.Provider>;
 }
