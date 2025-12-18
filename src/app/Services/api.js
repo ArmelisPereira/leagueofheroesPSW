@@ -39,10 +39,14 @@ export async function saveHeroes(heroes) {
   });
 }
 
-export async function saveFavorites(favorites) {
-  await fetch(`${BASE_URL}/users/${PRIVATE_ID}/top`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(favorites),
+export async function saveFavoriteById(id, favorite) {
+  const res = await fetch(`${BASE_URL}/top/${PRIVATE_ID}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, favorite }),
   });
+
+  if (!res.ok) throw new Error("Erro ao guardar favorito (por ID)");
+  return res.json();
 }
+

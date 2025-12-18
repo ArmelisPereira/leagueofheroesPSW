@@ -87,7 +87,6 @@ useEffect(() => {
             }))
           : heroesClean.map((hero) => ({ id: hero.id, favorite: false }));
 
-      // ✅ se /top vier vazio -> guardar a lista completa uma vez (só o owner pode)
       if (isOwner && (!Array.isArray(f) || f.length === 0)) {
         await saveFavorites(favoritesClean);
       }
@@ -163,9 +162,6 @@ useEffect(() => {
 
     setTop3(updatedTop);
   };
-  const changeUser = (userId: string) => {
-    setSelectedUser(String(userId));
-  };
 
   // DELETE hero
   const removeHero = async (id: number) => {
@@ -189,14 +185,18 @@ useEffect(() => {
 
   // TOGGLE favorite
 const toggleFavorite = async (hero: Hero) => {
-  if (!isOwner) return; // 🔒 BLOQUEIA
+  if (!isOwner) return;
 
-  const updatedFavs = favorites.map((f) =>
-    f.id === hero.id ? { ...f, favorite: !f.favorite } : f
-  );
+  const exists = favorites.some((f) => f.id === hero.id);
+
+  const updatedFavs = exists
+    ? favorites.map((f) =>
+        f.id === hero.id ? { ...f, favorite: !f.favorite } : f
+      )
+    : [...favorites, { id: hero.id, favorite: true }];
 
   setFavorites(updatedFavs);
-  await saveFavorites(updatedFavs);
+  await saveFavorites(updatedFavs); // ✅ ENVIA PARA API /top
 
   const updatedTop = heroes
     .filter((h) => updatedFavs.some((f) => f.id === h.id && f.favorite))
@@ -207,27 +207,23 @@ const toggleFavorite = async (hero: Hero) => {
 
 
 
-
-const value = useMemo(
-  () => ({
-    heroes,
-    favorites,
-    top3,
-    users,
-    selectedUser,
-    setSelectedUser,
-    changeUser,          
-    loadingUsers,
-    loadingData,
-    isOwner,
-    saveHero,
-    removeHero,
-    toggleFavorite,
-  }),
-  [heroes, favorites, top3, users, selectedUser, loadingUsers, loadingData, isOwner]
-);
-
-
+  const value = useMemo(
+    () => ({
+      heroes,
+      favorites,
+      top3,
+      users,
+      selectedUser,
+      setSelectedUser,
+      loadingUsers,
+      loadingData,
+      isOwner,
+      saveHero,
+      removeHero,
+      toggleFavorite,
+    }),
+    [heroes, favorites, top3, users, selectedUser, loadingUsers, loadingData, isOwner]
+  );
 
   return <HeroesContext.Provider value={value}>{children}</HeroesContext.Provider>;
 }
