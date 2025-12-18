@@ -1,0 +1,81 @@
+/* Main */
+.main {
+  text-align: center;
+  padding: 40px 20px;
+  position: relative;
+  min-height: calc(100vh - 120px); 
+}
+
+/* Controls */
+.controls {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn {
+  background: #1d8ed8;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgba(29, 142, 216, 0.18);
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Heroes */
+.heroes-container {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.hero-box {
+  width: 260px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.hero-box img {
+  width: 100%;
+  height: 260px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #81c9f0;
+}
+
+/* Loader */
+.loader-container {
+  position: absolute;
+  top: 0;
+  left: -15;
+  width: 110%;
+  height: 120%;
+  background-color: #000; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.loader-gif {
+  width: 400px;
+  height: auto;
+  object-fit: contain;
+}

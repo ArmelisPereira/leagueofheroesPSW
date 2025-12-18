@@ -1,0 +1,11 @@
+.loader-container{
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+}
+
+.loader-gif {
+  width: 180px;
+  height: auto;
+  display: block;
+}

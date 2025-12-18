@@ -1,0 +1,55 @@
+.dashboard-container {
+  padding: 20px;
+}
+
+.dashboard-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.heroes-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.heroes-table th,
+.heroes-table td {
+  border: 1px solid #94a3b8;
+  padding: 10px;
+  text-align: center;
+}
+
+.heroes-table th {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+.heroes-table td img {
+  border-radius: 8px;
+}
+
+.heroes-table button {
+  margin: 2px;
+  padding: 5px 10px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  background-color: #38bdf8;
+  color: #0f172a;
+  font-weight: bold;
+}
+
+.heroes-table button:hover {
+  background-color: #22d3ee;
+}
+
+.heroes-table button:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.controls select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}

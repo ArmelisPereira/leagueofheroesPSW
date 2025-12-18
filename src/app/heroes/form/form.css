@@ -1,0 +1,105 @@
+/* form.css */
+
+/* Container do formulário */
+form {
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 30px;
+  background: #f8f9fa; /* fundo claro */
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+/* Título do formulário */
+h1 {
+  text-align: center;
+  color: #343a40;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+}
+
+/* Labels */
+label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 5px;
+}
+
+/* Inputs */
+input {
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 5px rgba(79,70,229,0.3);
+  outline: none;
+}
+
+/* Botões */
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button[type="submit"] {
+  background-color: #4f46e5;
+  color: #fff;
+}
+
+button[type="submit"]:hover {
+  background-color: #3730a3;
+  transform: translateY(-2px);
+}
+
+button[type="button"] {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+button[type="button"]:hover {
+  background-color: #495057;
+  transform: translateY(-2px);
+}
+
+/* Agrupar botões */
+form > div.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Mensagens de erro ou info futura */
+span {
+  font-size: 0.9rem;
+  color: #e11d48; /* vermelho suave */
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+  form {
+    padding: 20px;
+    margin: 10px;
+  }
+
+  input {
+    font-size: 0.95rem;
+  }
+
+  button {
+    font-size: 0.95rem;
+  }
+}

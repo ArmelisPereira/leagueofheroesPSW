@@ -1,0 +1,48 @@
+/* Header.css */
+
+/* Container do header */
+.header {
+  display: flex;
+  flex-direction: column; /* coloca logo e texto em coluna */
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  width: 100%;
+  gap: 8px; /* espaço entre logo e texto */
+  margin-bottom: 40px; 
+  background-color: #1d8ed8; /* opcional: cor de fundo */
+}
+
+/* Logo dentro do header */
+.header .logo {
+  width: 100px; /* largura fixa */
+  height: auto; /* altura proporcional */
+  border-radius: 5px; /* cantos arredondados */
+  object-fit: cover; /* garante que a imagem não distorça */
+}
+
+/* Texto dentro do header */
+.header-text h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333; /* cor do título */
+  
+}
+
+.header-text h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #666; /* cor do subtítulo */
+}
+
+.nav-menu {
+  display: flex;
+  gap: 20px; /* distância entre Home e Dashboard */
+  margin-top: 10px; /* opcional: espaço entre menu e o título */
+}
+
+.nav-menu a {
+  color: white;
+  font-weight: 500;
+}
