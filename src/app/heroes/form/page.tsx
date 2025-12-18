@@ -5,14 +5,21 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, ChangeEvent, FormEvent } from "react";
 import "./form.css";
 
-export default function HeroForm() {
+type Hero = {
+  id: number;
+  name: string;
+  image: string;
+  superpower: string;
+};
+
+export default function HeroFormClient() {
   const { heroes, saveHero, isOwner } = useHeroes();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const idParam = searchParams.get("id");
 
-  const [hero, setHero] = useState({
+  const [hero, setHero] = useState<Hero>({
     id: 0,
     name: "",
     image: "",
@@ -23,7 +30,7 @@ export default function HeroForm() {
     if (!idParam) return;
 
     const idNumber = Number(idParam);
-    const found = heroes.find((h: any) => h.id === idNumber);
+    const found = (heroes as Hero[]).find((h) => h.id === idNumber);
 
     if (found) {
       setHero({
