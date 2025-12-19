@@ -7,8 +7,9 @@ import {
   getHeroes,
   getFavorites,
   saveHeroes,
-  saveFavorites,
+  saveFavoriteById,
 } from "../Services/api";
+
 
 type Hero = {
   id: number;
@@ -88,7 +89,7 @@ useEffect(() => {
           : heroesClean.map((hero) => ({ id: hero.id, favorite: false }));
 
       if (isOwner && (!Array.isArray(f) || f.length === 0)) {
-        await saveFavorites(favoritesClean);
+        await setFavorites(favoritesClean);
       }
 
       const top = heroesClean
@@ -152,8 +153,9 @@ useEffect(() => {
       setHeroes(updatedHeroes);
       setFavorites(updatedFavs);
 
-      await saveHeroes(updatedHeroes);
-      await saveFavorites(updatedFavs);
+await saveHeroes(updatedHeroes);
+await saveFavoriteById(newId, false);
+
     }
 
     const updatedTop = updatedHeroes
@@ -174,7 +176,6 @@ useEffect(() => {
     setFavorites(updatedFavs);
 
     await saveHeroes(updatedHeroes);
-    await saveFavorites(updatedFavs);
 
     const updatedTop = updatedHeroes
       .filter((h) => updatedFavs.some((f) => f.id === h.id && f.favorite))
@@ -196,7 +197,6 @@ const toggleFavorite = async (hero: Hero) => {
     : [...favorites, { id: hero.id, favorite: true }];
 
   setFavorites(updatedFavs);
-  await saveFavorites(updatedFavs); // ✅ ENVIA PARA API /top
 
   const updatedTop = heroes
     .filter((h) => updatedFavs.some((f) => f.id === h.id && f.favorite))
