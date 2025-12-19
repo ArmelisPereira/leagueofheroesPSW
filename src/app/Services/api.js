@@ -32,12 +32,20 @@ export async function getFavorites(publicId = PUBLIC_ID) {
 }
 
 export async function saveHeroes(heroes) {
-  await fetch(`${BASE_URL}/users/${PRIVATE_ID}`, {
+  const res = await fetch(`${BASE_URL}/users/${PRIVATE_ID}`, {
     method: "POST",
-    headers,
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(heroes),
   });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`Erro a guardar heróis: ${res.status} ${txt}`);
+  }
+
+  return res.json().catch(() => null);
 }
+
 
 export async function saveFavoriteById(id, favorite) {
   const res = await fetch(`${BASE_URL}/top/${PRIVATE_ID}`, {
