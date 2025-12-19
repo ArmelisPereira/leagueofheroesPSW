@@ -5,7 +5,9 @@ import Link from "next/link";
 import "./dashboard.css";
 
 export default function Dashboard() {
-  const { heroes, favorites, removeHero, toggleFavorite, isOwner } = useHeroes();
+  const { heroes, favorites, removeHero, toggleFavorite, isOwner, loadingData } = useHeroes();
+
+  if (loadingData) return <p>A carregar...</p>;
 
   return (
     <div className="dashboard-container">
@@ -27,36 +29,39 @@ export default function Dashboard() {
             <th>ID</th>
             <th>Imagem</th>
             <th>Nome</th>
-            <th>superpower</th>
+            <th>Superpower</th>
             <th>Ações</th>
           </tr>
         </thead>
 
         <tbody>
-          {heroes.map((hero: any) => (
-            <tr key={hero.id}>
-              <td>{hero.id}</td>
-              <td>
-                <img src={hero.image} width={50} height={50} />
-              </td>
-              <td>{hero.name}</td>
-              <td>{hero.superpower}</td>
-              <td>
-                <button disabled={!isOwner} onClick={() => removeHero(hero.id)}>
-                  Eliminar
-                </button>
+          {heroes.map((hero: any) => {
+            const isFav = favorites.some((f: any) => f.id === hero.id && f.favorite);
 
-  <button disabled={!isOwner} onClick={() => toggleFavorite(hero)}>
-    {favorites.some((f:any)=>f.id===hero.id && f.favorite) ? "Desfavoritar" : "Favoritar"}
-  </button>
+            return (
+              <tr key={hero.id}>
+                <td>{hero.id}</td>
+                <td>
+                  <img src={hero.image} width={50} height={50} alt={hero.name} />
+                </td>
+                <td>{hero.name}</td>
+                <td>{hero.superpower}</td>
+                <td>
+                  <button disabled={!isOwner} onClick={() => removeHero(hero.id)}>
+                    Eliminar
+                  </button>
 
-<Link href={`/heroes/form?id=${hero.id}`}>
-  <button disabled={!isOwner}>Editar</button>
-</Link>
+                  <button disabled={!isOwner} onClick={() => toggleFavorite(hero)}>
+                    {isFav ? "Desfavoritar" : "Favoritar"}
+                  </button>
 
-              </td>
-            </tr>
-          ))}
+                  <Link href={`/heroes/form?id=${hero.id}`}>
+                    <button disabled={!isOwner}>Editar</button>
+                  </Link>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
