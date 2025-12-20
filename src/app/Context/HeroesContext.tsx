@@ -5,9 +5,9 @@ import {
   PUBLIC_ID,
   getUsers,
   getHeroes,
-  getFavorites,
+  getTopHeroes,
   saveHeroes,
-  saveFavorites,
+  saveTopHeroes,
 } from "../Services/api";
 
 export type Hero = {
@@ -17,42 +17,66 @@ export type Hero = {
   superpower?: string;
 };
 
-export type Favorite = {
-  id: number;
-  favorite: boolean;
-};
-
 type HeroesContextType = {
   heroes: Hero[];
-  favorites: Favorite[];
-  top3: Hero[];
+  topIds: number[];
   users: any[];
   selectedUser: string;
   setSelectedUser: (id: string) => void;
   loadingUsers: boolean;
   loadingData: boolean;
   isOwner: boolean;
+
   saveHero: (hero: Partial<Hero>) => Promise<void>;
   removeHero: (id: number) => Promise<void>;
-  toggleFavorite: (hero: Hero) => Promise<void>;
+  toggleFavorite: (id: number) => Promise<void>;
 };
 
 const HeroesContext = createContext<HeroesContextType | null>(null);
 
+function normalizeUsers(u: any): any[] {
+  return Array.isArray(u) ? u : [];
+}
+
+function getUserPublicId(u: any): string {
+  // tenta várias chaves possíveis (depende do backend)
+  return String(u?.public_id ?? u?.publicId ?? u?.id ?? u);
+}
+
+function normalizeHeroes(h: any): Hero[] {
+  const arr = Array.isArray(h) ? h : [];
+  return arr.map((x: any) => ({
+    id: Number(x.id),
+    name: x.name ?? "",
+    image: x.image ?? "",
+    superpower: x.superpower ?? "",
+  }));
+}
+
+function normalizeTop(top: any): number[] {
+  const arr = Array.isArray(top) ? top : [];
+  // pode vir [1,2,3] ou [{id:1}, {id:2}...]
+  const ids = arr
+    .map((x: any) => (typeof x === "number" ? x : Number(x?.id)))
+    .filter((n: any) => Number.isFinite(n));
+
+  // unique + max 3
+  return Array.from(new Set(ids)).slice(0, 3);
+}
+
 export function HeroesProvider({ children }: { children: React.ReactNode }) {
   const [heroes, setHeroes] = useState<Hero[]>([]);
-  const [favorites, setFavorites] = useState<Favorite[]>([]);
-  const [top3, setTop3] = useState<Hero[]>([]);
+  const [topIds, setTopIds] = useState<number[]>([]);
 
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>(String(PUBLIC_ID));
 
-  const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
-  const [loadingData, setLoadingData] = useState<boolean>(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingData, setLoadingData] = useState(true);
 
   const isOwner = String(selectedUser) === String(PUBLIC_ID);
 
-  // GET /users
+  // ✅ carregar users
   useEffect(() => {
     let cancelled = false;
 
@@ -60,7 +84,7 @@ export function HeroesProvider({ children }: { children: React.ReactNode }) {
       try {
         setLoadingUsers(true);
         const u = await getUsers();
-        if (!cancelled) setUsers(Array.isArray(u) ? u : []);
+        if (!cancelled) setUsers(normalizeUsers(u));
       } catch (e) {
         console.error(e);
         if (!cancelled) setUsers([]);
@@ -74,7 +98,7 @@ export function HeroesProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // GET heroes + favorites sempre que muda selectedUser
+  // ✅ carregar heroes + top do selectedUser (colegas incluídos)
   useEffect(() => {
     let cancelled = false;
 
@@ -82,51 +106,20 @@ export function HeroesProvider({ children }: { children: React.ReactNode }) {
       try {
         setLoadingData(true);
 
-        const [h, f] = await Promise.all([
-          getHeroes(selectedUser),
-          getFavorites(selectedUser),
-        ]);
+        const [h, t] = await Promise.all([getHeroes(selectedUser), getTopHeroes(selectedUser)]);
 
-        const heroesClean: Hero[] = (Array.isArray(h) ? h : []).map((x: any) => ({
-          id: Number(x.id),
-          name: x.name ?? "",
-          image: x.image ?? "",
-          superpower: x.superpower ?? "",
-        }));
-
-        // se vier vazio, cria lista default (SEM gravar para colegas)
-        const favoritesClean: Favorite[] =
-          Array.isArray(f) && f.length > 0
-            ? (f as any[]).map((x: any) => ({
-                id: Number(x.id),
-                favorite: Boolean(x.favorite),
-              }))
-            : heroesClean.map((hero) => ({ id: hero.id, favorite: false }));
-
-        // se eu for owner e ainda não existir top na API, grava uma vez
-        if (isOwner && (!Array.isArray(f) || f.length === 0)) {
-          try {
-            await saveFavorites(favoritesClean);
-          } catch (err) {
-            console.error("Falhou inicializar favoritos no servidor:", err);
-          }
-        }
-
-        const top = heroesClean
-          .filter((hero) => favoritesClean.some((ff) => ff.id === hero.id && ff.favorite))
-          .slice(0, 3);
+        const heroesClean = normalizeHeroes(h);
+        const topClean = normalizeTop(t).filter((id) => heroesClean.some((hh) => hh.id === id));
 
         if (!cancelled) {
           setHeroes(heroesClean);
-          setFavorites(favoritesClean);
-          setTop3(top);
+          setTopIds(topClean);
         }
       } catch (e) {
         console.error(e);
         if (!cancelled) {
           setHeroes([]);
-          setFavorites([]);
-          setTop3([]);
+          setTopIds([]);
         }
       } finally {
         if (!cancelled) setLoadingData(false);
@@ -136,107 +129,82 @@ export function HeroesProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [selectedUser, isOwner]);
+  }, [selectedUser]);
 
-  // ADD/EDIT hero
+  // ✅ add/edit hero (só owner)
   const saveHero = async (hero: Partial<Hero>) => {
     if (!isOwner) return;
 
+    let updatedHeroes: Hero[];
+
     if (hero.id) {
-      const updatedHeroes = heroes.map((h) =>
+      updatedHeroes = heroes.map((h) =>
         h.id === hero.id
           ? {
               ...h,
               ...hero,
-              superpower: (hero as any).superpower ?? h.superpower ?? "",
+              superpower: hero.superpower ?? h.superpower ?? "",
             }
           : h
       );
-
-      setHeroes(updatedHeroes);
-      await saveHeroes(updatedHeroes);
-
-      // recalcula top3
-      const updatedTop = updatedHeroes
-        .filter((h) => favorites.some((f) => f.id === h.id && f.favorite))
-        .slice(0, 3);
-      setTop3(updatedTop);
-
-      return;
+    } else {
+      const newId = Date.now();
+      updatedHeroes = [
+        ...heroes,
+        {
+          id: newId,
+          name: hero.name ?? "",
+          image: hero.image ?? "",
+          superpower: hero.superpower ?? "",
+        },
+      ];
     }
 
-    // ✅ NOVO HEROI: só guarda heróis (NÃO mexe em favoritos aqui)
-    const newId = Date.now();
-    const newHero: Hero = {
-      id: newId,
-      name: hero.name ?? "",
-      image: hero.image ?? "",
-      superpower: (hero as any).superpower ?? "",
-    };
-
-    const updatedHeroes = [...heroes, newHero];
     setHeroes(updatedHeroes);
-
-    // garante que existe um favorito false localmente (para o dashboard não buggar)
-    const updatedFavs: Favorite[] = favorites.some((f) => f.id === newId)
-      ? favorites
-      : [...favorites, { id: newId, favorite: false }];
-    setFavorites(updatedFavs);
-
     await saveHeroes(updatedHeroes);
 
-    // top3 continua igual
-    const updatedTop = updatedHeroes
-      .filter((h) => updatedFavs.some((f) => f.id === h.id && f.favorite))
-      .slice(0, 3);
-    setTop3(updatedTop);
+    // mantém top válido
+    const cleanedTop = topIds.filter((id) => updatedHeroes.some((h) => h.id === id)).slice(0, 3);
+    if (cleanedTop.length !== topIds.length) {
+      setTopIds(cleanedTop);
+      await saveTopHeroes(cleanedTop);
+    }
   };
 
-  // DELETE hero
+  // ✅ delete hero (só owner)
   const removeHero = async (id: number) => {
     if (!isOwner) return;
 
     const updatedHeroes = heroes.filter((h) => h.id !== id);
-    const updatedFavs = favorites.filter((f) => f.id !== id);
+    const updatedTop = topIds.filter((x) => x !== id);
 
     setHeroes(updatedHeroes);
-    setFavorites(updatedFavs);
+    setTopIds(updatedTop);
 
     await saveHeroes(updatedHeroes);
-    await saveFavorites(updatedFavs);
-
-    const updatedTop = updatedHeroes
-      .filter((h) => updatedFavs.some((f) => f.id === h.id && f.favorite))
-      .slice(0, 3);
-    setTop3(updatedTop);
+    await saveTopHeroes(updatedTop);
   };
 
-  // TOGGLE favorite (guarda lista inteira na API)
-  const toggleFavorite = async (hero: Hero) => {
+  // ✅ toggle favorito por ID (só owner) — guarda só IDs no /top
+  const toggleFavorite = async (id: number) => {
     if (!isOwner) return;
 
-    const exists = favorites.some((f) => f.id === hero.id);
+    let updatedTop: number[];
 
-    const updatedFavs: Favorite[] = exists
-      ? favorites.map((f) =>
-          f.id === hero.id ? { ...f, favorite: !f.favorite } : f
-        )
-      : [...favorites, { id: hero.id, favorite: true }];
+    if (topIds.includes(id)) {
+      updatedTop = topIds.filter((x) => x !== id);
+    } else {
+      updatedTop = [...topIds, id].slice(0, 3);
+    }
 
-    setFavorites(updatedFavs);
-    await saveFavorites(updatedFavs);
-
-    const updatedTop = heroes
-      .filter((h) => updatedFavs.some((f) => f.id === h.id && f.favorite))
-      .slice(0, 3);
-    setTop3(updatedTop);
+    setTopIds(updatedTop);
+    await saveTopHeroes(updatedTop);
   };
 
   const value = useMemo(
     () => ({
       heroes,
-      favorites,
-      top3,
+      topIds,
       users,
       selectedUser,
       setSelectedUser,
@@ -247,7 +215,7 @@ export function HeroesProvider({ children }: { children: React.ReactNode }) {
       removeHero,
       toggleFavorite,
     }),
-    [heroes, favorites, top3, users, selectedUser, loadingUsers, loadingData, isOwner]
+    [heroes, topIds, users, selectedUser, loadingUsers, loadingData, isOwner]
   );
 
   return <HeroesContext.Provider value={value}>{children}</HeroesContext.Provider>;

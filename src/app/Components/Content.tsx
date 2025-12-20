@@ -7,13 +7,16 @@ import "./Content.css";
 
 export default function Content() {
   const {
-    top3,
+    heroes,
+    topIds,
     users,
     selectedUser,
     setSelectedUser,
     loadingUsers,
     loadingData,
   } = useHeroes();
+
+  const top3Heroes = heroes.filter((h) => topIds.includes(h.id));
 
   return (
     <main className="main">
@@ -25,15 +28,12 @@ export default function Content() {
         <div className="controls">
           <label>
             Utilizador Selecionado:{" "}
-            <select
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-            >
+            <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}>
               {users.map((u: any) => {
-                const id = String(u.public_id ?? u.publicId ?? u.id ?? u);
+                const id = String(u?.public_id ?? u?.publicId ?? u?.id ?? u);
                 return (
                   <option key={id} value={id}>
-                    {u.name ? `${u.name} (${id})` : id}
+                    {u?.name ? `${u.name} (${id})` : id}
                   </option>
                 );
               })}
@@ -46,17 +46,11 @@ export default function Content() {
         <Loader />
       ) : (
         <div className="heroes-container">
-          {top3.length === 0 ? (
+          {top3Heroes.length === 0 ? (
             <p>Este utilizador não tem favoritos.</p>
           ) : (
-            top3.map((hero: any) => (
-              <HeroInfo
-                key={hero.id}
-                id={hero.id}
-                name={hero.name}
-                image={hero.image}
-                isFavorite
-              />
+            top3Heroes.map((hero) => (
+              <HeroInfo key={hero.id} id={hero.id} name={hero.name} image={hero.image} isFavorite />
             ))
           )}
         </div>
