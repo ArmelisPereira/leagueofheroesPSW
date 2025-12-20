@@ -1,12 +1,12 @@
 "use client";
 
 import { useHeroes } from "@/app/Context/HeroesContext";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState, ChangeEvent, FormEvent } from "react";
+import { useEffect, useMemo, useState, ChangeEvent, FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import "./form.css";
 
-type Hero = {
-  id: number;
+type HeroFormState = {
+  id?: number;
   name: string;
   image: string;
   superpower: string;
@@ -18,48 +18,75 @@ export default function HeroFormClient() {
   const searchParams = useSearchParams();
 
   const idParam = searchParams.get("id");
+  const heroId = useMemo(() => (idParam ? Number(idParam) : null), [idParam]);
 
-  const [hero, setHero] = useState<Hero>({
-    id: 0,
+  const [hero, setHero] = useState<HeroFormState>({
+    id: undefined,
     name: "",
     image: "",
     superpower: "",
   });
 
+  const [msg, setMsg] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  // carregar dados se for edição
   useEffect(() => {
-    if (!idParam) return;
+    if (!heroId) return;
 
-    const idNumber = Number(idParam);
-    const found = (heroes as Hero[]).find((h) => h.id === idNumber);
+    const found = heroes.find((h: any) => Number(h.id) === heroId);
+    if (!found) return;
 
-    if (found) {
-      setHero({
-        id: found.id,
-        name: found.name ?? "",
-        image: found.image ?? "",
-        superpower: found.superpower ?? "",
-      });
-    }
-  }, [idParam, heroes]);
+    setHero({
+      id: Number(found.id),
+      name: found.name ?? "",
+      image: found.image ?? "",
+      superpower: found.superpower ?? "",
+    });
+  }, [heroId, heroes]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setHero((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value } = e.target;
+    setHero((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await saveHero(hero);
-    router.push("/dashboard");
+    if (!isOwner) {
+      setMsg("Não podes editar dados de outro utilizador.");
+      return;
+    }
+
+    setMsg("");
+    setSaving(true);
+
+    try {
+      await saveHero({
+        id: hero.id,
+        name: hero.name,
+        image: hero.image,
+        superpower: hero.superpower,
+      });
+
+      setMsg("✅ Guardado com sucesso!");
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err: any) {
+      setMsg(`❌ Erro ao guardar: ${err?.message ?? "Erro desconhecido"}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div>
       <h1>{hero.id ? "Editar Super-Herói" : "Adicionar Super-Herói"}</h1>
 
-      {!isOwner && <p>Estás a ver dados de outro utilizador — edição bloqueada.</p>}
+      {!isOwner && (
+        <p style={{ color: "crimson" }}>
+          Estás a ver outro utilizador — não podes gravar alterações.
+        </p>
+      )}
 
       <form onSubmit={handleSubmit}>
         <label>Nome:</label>
@@ -68,7 +95,7 @@ export default function HeroFormClient() {
         <label>Imagem (URL):</label>
         <input name="image" value={hero.image} onChange={handleChange} required />
 
-        <label>Superpower:</label>
+        <label>Superpoder:</label>
         <input
           name="superpower"
           value={hero.superpower}
@@ -76,8 +103,8 @@ export default function HeroFormClient() {
           required
         />
 
-        <button type="submit" disabled={!isOwner}>
-          Gravar
+        <button type="submit" disabled={!isOwner || saving}>
+          {saving ? "A guardar..." : "Gravar"}
         </button>
 
         <button
@@ -88,6 +115,8 @@ export default function HeroFormClient() {
           Voltar
         </button>
       </form>
+
+      {msg && <p style={{ marginTop: 10 }}>{msg}</p>}
     </div>
   );
 }
