@@ -1,47 +1,36 @@
-.main {
-  text-align: center;
-  padding: 40px 20px;
+.contentShell{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
-.controls {
+
+.main {
+  flex: 1;                 /* ✅ ocupa o espaço do meio */
+  display: flex;           /* ✅ para o loader “encher” bem */
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;           /* ✅ baixa isto (40px costuma empurrar footer) */
+}
+
+
+.controls{
   margin-bottom: 20px;
   display: flex;
   justify-content: center;
   gap: 12px;
   align-items: center;
 }
-.btn {
-  background: #1d8ed8;
-  color: #fff;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600; 
-  box-shadow: 0 6px 16px rgba(29,142,216,0.18);
-}
-.btn:hover { transform: translateY(-2px); }
-.picked { color: #444; font-size: 14px; }
 
-.heroes-container {
+.heroes-container{
   display: flex;
   justify-content: center;
   gap: 25px;
   flex-wrap: wrap;
 }
-
-/* Loader limitado à área do Content */
-.content-loader {
-  width: 100%;
-  min-height: 220px;        /* altura só do content */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-/* Loader limitado à área do Content */
-.content-loader {
-  width: 100%;
-  min-height: 220px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* área que ocupa o espaço do content para centrar o loader sem tapar header/footer */
+.contentFill {
+  flex: 1;
+  display: grid;
+  place-items: center;
 }
